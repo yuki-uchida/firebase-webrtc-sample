@@ -17,6 +17,8 @@ const viewers = {};
 let localPeerId;
 let remotePeerId;
 let isOfferer;
+let localRecorder;
+let remoteRecorder;
 function displayMediaTrack(tracks) {
   text = "";
   tracks.forEach((track) => {
@@ -57,6 +59,68 @@ function onDisconnectFirebase(usersRef, localPeerId) {
     .set("offline");
 }
 
+class Recorder {
+  //  async function startRecording(stream){
+  constructor(stream, peerId) {
+    this.blobs = [];
+    this.mediaRecorder = new MediaRecorder(stream);
+    this.peerId = peerId;
+    this.mediaRecorder.ondataavailable = (event) => {
+      // if (event.data) {
+      console.log("ondataavailable?");
+      console.log(event);
+      console.log(event.data);
+      if (event.data && event.data.size > 0) {
+        this.blobs.push(event.data);
+        console.log("ondataavailable");
+      }
+    };
+
+    this.mediaRecorder.onstop = (event) => {
+      console.log("stop Recording");
+      this.download();
+    };
+    this.mediaRecorder.onerror = (event) => {
+      console.log(`${this.peerId} recorder: raise error ${event}`);
+    };
+
+    this.mediaRecorder.start(1000);
+    console.log("Start Recording");
+  }
+
+  stop() {
+    this.mediaRecorder.stop();
+  }
+
+  download() {
+    // var options = { mimeType: "video/webm; codecs=vp8" };
+    // var options = { type: 'video/webm' };
+    // var options = { type: "video/VP8" };
+    var options = { type: "video/mp4" };
+    const downloadBlob = new Blob(this.blobs, options);
+    // const downloadBlob = new Blob(this.blobs);
+    const url = window.URL.createObjectURL(downloadBlob);
+    console.log(url);
+    const a = document.createElement("a");
+    a.style.display = "block";
+    a.href = url;
+    a.download = `${this.peerId}.mp4`;
+    a.textContent = this.peerId;
+    const dlArea = document.getElementById("js-downloadButton-area");
+    dlArea.appendChild(a);
+    // const a = document.createElement("a");
+    // a.style.display = "none";
+    // a.href = url;
+    // a.download = `${this.peerId}.webm`;
+    // document.body.appendChild(a);
+    // a.click();
+    // setTimeout(() => {
+    //   window.URL.revokeObjectURL(url)
+    //   document.body.removeChild(a)
+    // }, 200)
+  }
+}
+
 (async function () {
   setupFirebase();
 
@@ -80,6 +144,7 @@ function onDisconnectFirebase(usersRef, localPeerId) {
     bundlePolicy: "max-compat",
   };
   const localPeer = new RTCPeerConnection(config);
+  localRecorder = new Recorder(localMediaStream, "local");
   // まだ誰も入室していない場合にはOfferを作成する。
   // 既に入室している場合にはAnswerを作成する
   const usersRef = firebase.database().ref("users/");
@@ -182,6 +247,17 @@ function onDisconnectFirebase(usersRef, localPeerId) {
   });
 
   localPeer.addEventListener("track", (e) => {
+    // remoteRecorder = new Recorder(e.streams[0], "local");
     document.getElementById("remoteVideo").srcObject = e.streams[0];
   });
+
+  const leaveTrigger = document.getElementById("js-leave-trigger");
+  leaveTrigger.addEventListener(
+    "click",
+    () => {
+      localRecorder.stop();
+      // room.close();
+    },
+    { once: true }
+  );
 })();
