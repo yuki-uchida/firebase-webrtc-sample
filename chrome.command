@@ -1,0 +1,1 @@
+open -a "/Applications/Google Chrome.app" --args --use-fake-device-for-media-stream

@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- The core Firebase JS SDK is always required and must be listed first -->
+    <script src="https://www.gstatic.com/firebasejs/8.3.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.3.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.3.1/firebase-database.js"></script>
+    <!-- TODO: Add SDKs for Firebase products that you want to use
+      https://firebase.google.com/docs/web/setup#available-libraries -->
+    <script src="https://www.gstatic.com/firebasejs/8.3.1/firebase-analytics.js"></script>
+    <link href="./src/tailwind.css" rel="stylesheet" />
+    <script src="./src/index.js"></script>
+    <title>WebRTC API Tutorials</title>
+  </head>
+  <body>
+    <div class="bg-gray-100 min-h-screen">
+      <div class="box-border w-screen p-20">
+        <div class="flex space-x-16">
+          <div class="flex-1 shadow-xl rounded p-10 bg-white">
+            <p class="text-center text-2xl">Offerer</p>
+            <video
+              id="localVideo"
+              class="mx-auto"
+              width="400px"
+              autoplay
+              playsinline
+            ></video>
+            <dl>
+              <div
+                class="
+                  bg-gray-50
+                  px-4
+                  py-5
+                  sm:grid sm:grid-cols-3
+                  sm:gap-4
+                  sm:px-6
+                "
+              >
+                <dt class="text-sm font-medium text-gray-500">
+                  取得したMediaTrack
+                </dt>
+                <dd
+                  class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2"
+                  id="localMediaTrack"
+                ></dd>
+              </div>
+              <div
+                class="
+                  bg-white
+                  px-4
+                  py-5
+                  sm:grid sm:grid-cols-3
+                  sm:gap-4
+                  sm:px-6
+                "
+              >
+                <dt class="text-sm font-medium text-gray-500">自身のPeerID</dt>
+                <dd
+                  class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2"
+                  id="localPeerId"
+                ></dd>
+              </div>
+              <div
+                class="
+                  bg-gray-50
+                  px-4
+                  py-5
+                  sm:grid sm:grid-cols-3
+                  sm:gap-4
+                  sm:px-6
+                "
+              >
+                <dt class="text-sm font-medium text-gray-500">Offer SDP</dt>
+                <dd
+                  class="
+                    mt-1
+                    text-sm text-gray-900
+                    sm:mt-0
+                    sm:col-span-2
+                    overflow-auto
+                    h-32
+                  "
+                  id="localOfferSdp"
+                ></dd>
+              </div>
+              <div
+                class="
+                  bg-gray-50
+                  px-4
+                  py-5
+                  sm:grid sm:grid-cols-3
+                  sm:gap-4
+                  sm:px-6
+                "
+              >
+                <dt class="text-sm font-medium text-gray-500">Answer SDP</dt>
+                <dd
+                  class="
+                    mt-1
+                    text-sm text-gray-900
+                    sm:mt-0
+                    sm:col-span-2
+                    overflow-auto
+                    h-32
+                  "
+                  id="localAnswerSdp"
+                ></dd>
+              </div>
+              <div
+                class="
+                  bg-white
+                  px-4
+                  py-5
+                  sm:grid sm:grid-cols-3
+                  sm:gap-4
+                  sm:px-6
+                "
+              >
+                <dt class="text-sm font-medium text-gray-500">
+                  収集済みの経路候補
+                </dt>
+                <dd
+                  class="
+                    mt-1
+                    text-sm text-gray-900
+                    sm:mt-0
+                    sm:col-span-2
+                    overflow-auto
+                    h-32
+                  "
+                  id="localCandidates"
+                ></dd>
+              </div>
+              <div
+                class="
+                  bg-gray-50
+                  px-4
+                  py-5
+                  sm:grid sm:grid-cols-3
+                  sm:gap-4
+                  sm:px-6
+                "
+              >
+                <dt class="text-sm font-medium text-gray-500">ICE収集状態</dt>
+                <dd
+                  class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2"
+                  id="localPeerIceGatheringState"
+                ></dd>
+              </div>
+            </dl>
+          </div>
+          <div class="flex-1 shadow-xl rounded p-10 bg-white">
+            <p class="text-center text-2xl">Answerer</p>
+            <div id="peerIdsViewer"></div>
+            <video
+              id="remoteVideo"
+              class="mx-auto"
+              width="400px"
+              autoplay
+              playsinline
+            ></video>
+            <dl>
+              <div
+                class="
+                  bg-gray-50
+                  px-4
+                  py-5
+                  sm:grid sm:grid-cols-3
+                  sm:gap-4
+                  sm:px-6
+                "
+              >
+                <dt class="text-sm font-medium text-gray-500">
+                  受信したMediaTrack
+                </dt>
+                <dd
+                  class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2"
+                  id="remoteMediaTrack"
+                ></dd>
+              </div>
+              <div
+                class="
+                  bg-white
+                  px-4
+                  py-5
+                  sm:grid sm:grid-cols-3
+                  sm:gap-4
+                  sm:px-6
+                "
+              >
+                <dt class="text-sm font-medium text-gray-500">相手のPeerID</dt>
+                <dd
+                  class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2"
+                  id="remotePeerId"
+                ></dd>
+              </div>
+              <div
+                class="
+                  bg-gray-50
+                  px-4
+                  py-5
+                  sm:grid sm:grid-cols-3
+                  sm:gap-4
+                  sm:px-6
+                "
+              >
+                <dt class="text-sm font-medium text-gray-500">Offer SDP</dt>
+                <dd
+                  class="
+                    mt-1
+                    text-sm text-gray-900
+                    sm:mt-0
+                    sm:col-span-2
+                    overflow-auto
+                    h-32
+                  "
+                  id="remoteOfferSdp"
+                ></dd>
+              </div>
+              <div
+                class="
+                  bg-gray-50
+                  px-4
+                  py-5
+                  sm:grid sm:grid-cols-3
+                  sm:gap-4
+                  sm:px-6
+                "
+              >
+                <dt class="text-sm font-medium text-gray-500">Answer SDP</dt>
+                <dd
+                  class="
+                    mt-1
+                    text-sm text-gray-900
+                    sm:mt-0
+                    sm:col-span-2
+                    overflow-auto
+                    h-32
+                  "
+                  id="remoteAnswerSdp"
+                ></dd>
+              </div>
+              <div
+                class="
+                  bg-white
+                  px-4
+                  py-5
+                  sm:grid sm:grid-cols-3
+                  sm:gap-4
+                  sm:px-6
+                "
+              >
+                <dt class="text-sm font-medium text-gray-500">
+                  受信した経路候補
+                </dt>
+                <dd
+                  class="
+                    mt-1
+                    text-sm text-gray-900
+                    sm:mt-0
+                    sm:col-span-2
+                    overflow-auto
+                    h-32
+                  "
+                  id="remoteCandidates"
+                ></dd>
+              </div>
+              <div
+                class="
+                  bg-gray-50
+                  px-4
+                  py-5
+                  sm:grid sm:grid-cols-3
+                  sm:gap-4
+                  sm:px-6
+                "
+              >
+                <dt class="text-sm font-medium text-gray-500">ICE収集状態</dt>
+                <dd
+                  class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2"
+                  id="localPeerIceGatheringState"
+                ></dd>
+              </div>
+            </dl>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
