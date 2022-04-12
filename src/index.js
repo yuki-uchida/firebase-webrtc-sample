@@ -19,6 +19,14 @@ let remotePeerId;
 let isOfferer;
 let localRecorder;
 let remoteRecorder;
+
+let roomName;
+if (location.hash) {
+  roomName = location.hash.slice(1);
+} else {
+  roomName = "test";
+}
+
 function displayMediaTrack(tracks) {
   text = "";
   tracks.forEach((track) => {
@@ -147,7 +155,7 @@ class Recorder {
   localRecorder = new Recorder(localMediaStream, "local");
   // まだ誰も入室していない場合にはOfferを作成する。
   // 既に入室している場合にはAnswerを作成する
-  const usersRef = firebase.database().ref("users/");
+  const usersRef = firebase.database().ref(`users/${roomName}/`);
   // online状態になっているpeerのなから最初の一つだけ取り出す。
   usersRef
     .orderByChild("status")
@@ -183,7 +191,7 @@ class Recorder {
               await localPeer.setRemoteDescription(remoteAnswerSdp);
               const remotePeerCandidates = firebase
                 .database()
-                .ref("users/" + remotePeerId + "/candidates");
+                .ref("users/" + roomName + "/" + remotePeerId + "/candidates");
               remotePeerCandidates.on("child_added", (snapshot, _) => {
                 displayRemoteCandidate(JSON.parse(snapshot.val()));
                 localPeer.addIceCandidate(JSON.parse(snapshot.val()));
@@ -221,7 +229,7 @@ class Recorder {
 
         const remotePeerCandidates = firebase
           .database()
-          .ref("users/" + remotePeerId + "/candidates");
+          .ref("users/" + roomName + "/" + remotePeerId + "/candidates");
         remotePeerCandidates.on("child_added", (snapshot, _) => {
           displayRemoteCandidate(JSON.parse(snapshot.val()));
           localPeer.addIceCandidate(JSON.parse(snapshot.val()));
