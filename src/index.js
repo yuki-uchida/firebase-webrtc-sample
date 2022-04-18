@@ -75,12 +75,8 @@ class Recorder {
     this.peerId = peerId;
     this.mediaRecorder.ondataavailable = (event) => {
       // if (event.data) {
-      console.log("ondataavailable?");
-      console.log(event);
-      console.log(event.data);
       if (event.data && event.data.size > 0) {
         this.blobs.push(event.data);
-        console.log("ondataavailable");
       }
     };
 
@@ -239,8 +235,6 @@ class Recorder {
   localPeer.onicecandidate = (e) => {
     if (e.candidate) {
       displayCandidate(e.candidate);
-      console.log(e.candidate);
-      console.log(JSON.stringify(e.candidate));
       usersRef
         .child(localPeerId + "/candidates")
         .push(JSON.stringify(e.candidate));
