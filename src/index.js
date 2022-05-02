@@ -89,6 +89,7 @@ class Recorder {
     this.mediaRecorder.ondataavailable = (event) => {
       // if (event.data) {
       if (event.data && event.data.size > 0) {
+        console.log("pushed blobs");
         this.blobs.push(event.data);
       }
     };
