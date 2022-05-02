@@ -273,6 +273,7 @@ class Recorder {
 
   localPeer.addEventListener("track", (e) => {
     if (useRemoteRecorder) {
+      console.log("starting remote recorder");
       remoteRecorder = new Recorder(e.streams[0], "local");
     }
     document.getElementById("remoteVideo").srcObject = e.streams[0];
