@@ -30,12 +30,16 @@ if (location.hash) {
 
 const urlParam = location.search.substring(1);
 let timeslice;
+let useRemoteRecorder;
 if (urlParam) {
   const params = urlParam.split("&");
   params.forEach((param) => {
     const values = param.split("=");
     if (values[0] == "timeslice") {
       timeslice = parseInt(values[1]);
+    }
+    if (values[0] == "useRemoteRecorder") {
+      useRemoteRecorder = values[1];
     }
   });
 }
@@ -268,7 +272,9 @@ class Recorder {
   });
 
   localPeer.addEventListener("track", (e) => {
-    // remoteRecorder = new Recorder(e.streams[0], "local");
+    if (useRemoteRecorder) {
+      remoteRecorder = new Recorder(e.streams[0], "local");
+    }
     document.getElementById("remoteVideo").srcObject = e.streams[0];
   });
 
